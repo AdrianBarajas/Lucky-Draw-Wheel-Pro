@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pageTitle">Ruleta de Sorteos Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-300 flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="w-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-sky-500 to-indigo-500 p-2.5 rounded-xl text-white shadow-lg shadow-sky-500/30">
+                    <i class="fa-solid font-bold fa-dharmachakra text-2xl animate-spin-slow"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl max-sm:text-base whitespace-nowrap tracking-tight bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent">
+                        <span data-i18n="appTitle" class="hidden sm:inline">Ruleta de Sorteos</span>
+                        <span data-i18n="appTitleCompact" class="sm:hidden">Ruleta</span>
+                    </h1>
+                    <p data-i18n="appSubtitle" class="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:block">Sorteos rápidos, aleatorios y divertidos</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Controls -->
+            <div class="flex items-center gap-0 sm:gap-3">
+                <label class="sr-only" for="languageSelect" data-i18n="languageLabel">Idioma</label>
+                <select id="languageSelect" data-i18n-aria-label="languageLabel" class="p-2.5 max-sm:w-20 max-sm:px-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none transition">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                </select>
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" data-i18n-title="soundToggle" title="Alternar Sonido" class="p-2.5 max-sm:p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggleBtn" data-i18n-title="themeToggle" title="Cambiar Tema" class="p-2.5 max-sm:p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT PANEL: Controls, Input & Settings (5 Cols) -->
+        <section class="lg:col-span-5 space-y-6 flex flex-col">
+            
+            <!-- Input & Actions Card -->
+            <div class="glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xl space-y-4">
+                <div class="block sm:flex sm:items-center sm:justify-between">
+                    <label for="namesInput" class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-sky-500"></i> <span data-i18n="participants">Participantes</span> (<span id="participantCount">0</span>)
+                    </label>
+                    <span data-i18n="inputHint" class="text-xs text-slate-400">1 por línea o por coma</span>
+                </div>
+
+                <!-- Textarea for entries -->
+                <div class="relative">
+                    <textarea id="namesInput" data-i18n-placeholder="namesPlaceholder" rows="6" placeholder="Ingresa nombres aquí... Ej:&#10;Juan Pérez&#10;Maria López&#10;Carlos Ruiz" 
+                        class="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/70 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none text-sm transition resize-y"></textarea>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button id="updateBtn" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs rounded-lg transition shadow-md col-span-2 sm:col-span-1">
+                        <i class="fa-solid fa-rotate"></i> <span data-i18n="update">Actualizar</span>
+                    </button>
+                    <button id="shuffleBtn" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-lg transition">
+                        <i class="fa-solid fa-shuffle"></i> <span data-i18n="shuffle">Mezclar</span>
+                    </button>
+                    <button id="dedupeBtn" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-lg transition">
+                        <i class="fa-solid fa-filter"></i> <span data-i18n="deduplicate">Sin Duplicados</span>
+                    </button>
+                    <button id="clearBtn" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-xs rounded-lg transition">
+                        <i class="fa-solid fa-trash-can"></i> <span data-i18n="clear">Limpiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Configuration Options -->
+            <div class="glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xl space-y-4">
+                <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-sky-500"></i> <span data-i18n="settingsTitle">Ajustes de la Ruleta</span>
+                </h2>
+
+                <!-- Spin Duration Slider -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span data-i18n="spinDuration" class="text-slate-600 dark:text-slate-300">Duración del giro</span>
+                        <span id="durationValue" class="text-sky-500">5 seg</span>
+                    </div>
+                    <input type="range" id="durationRange" min="3" max="10" value="5" step="1" 
+                        class="w-full accent-sky-500 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Palette Selector -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span data-i18n="colorPalette" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Paleta de Colores</span>
+                        <button id="randomColorBtn" class="text-xs text-sky-500 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="change">Cambiar</span>
+                        </button>
+                    </div>
+                    <div id="palettePreview" class="flex h-6 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-600 shadow-inner">
+                        <!-- Color swatches injected dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xl space-y-3 flex-grow flex flex-col min-h-[180px]">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> <span data-i18n="winnerHistory">Historial de Ganadores</span>
+                    </h2>
+                    <button id="clearHistoryBtn" class="text-xs text-slate-400 hover:text-rose-500 transition">
+                        <span data-i18n="clear">Limpiar</span>
+                    </button>
+                </div>
+                
+                <div id="historyContainer" class="flex-grow overflow-y-auto max-h-48 pr-1 space-y-2">
+                    <p id="emptyHistoryMsg" data-i18n="emptyHistory" class="text-xs text-slate-400 text-center py-4 italic">Aún no hay ganadores registrados.</p>
+                    <ul id="historyList" class="space-y-1.5 text-xs font-medium"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Wheel & Spin Action (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col items-center justify-center min-h-[450px] sm:min-h-[550px] relative">
+            
+            <div class="glass-card p-4 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xl w-full flex flex-col items-center justify-center relative overflow-hidden">
+                
+                <!-- Pointer / Needle Indicator -->
+                <div class="relative z-20 mb-[-24px] flex flex-col items-center">
+                    <div class="w-8 h-10 bg-gradient-to-b from-rose-500 to-red-600 clip-pointer shadow-lg filter drop-shadow-md transform transition-transform duration-100" id="wheelPointer"></div>
+                </div>
+
+                <!-- Canvas Wrapper for Responsiveness -->
+                <div class="relative w-full max-w-[420px] aspect-square flex items-center justify-center my-2">
+                    <canvas id="wheelCanvas" width="800" height="800" class="w-full h-full rounded-full shadow-2xl transition-transform"></canvas>
+                    
+                    <!-- Center Decorative Cap -->
+                    <div class="absolute inset-auto w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-800 rounded-full border-4 border-slate-100 dark:border-slate-700 shadow-xl flex items-center justify-center z-10 pointer-events-none">
+                        <i class="fa-solid fa-star text-amber-400 text-xl sm:text-2xl animate-pulse"></i>
+                    </div>
+                </div>
+
+                <!-- Main Spin Button -->
+                <div class="mt-6 w-full max-w-xs z-10">
+                    <button id="spinBtn" class="w-full py-4 px-8 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-600 hover:via-indigo-600 hover:to-purple-700 text-white font-extrabold text-xl rounded-2xl glow-spin-btn transition-all duration-300 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-play text-2xl"></i> <span data-i18n="spin">¡GIRAR!</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- WINNER MODAL -->
+    <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="glass-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl transform scale-95 transition-all duration-300 animate-modal relative overflow-hidden">
+            
+            <!-- Confetti Background Graphic -->
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-sky-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-4">
+                <div class="inline-flex p-4 bg-amber-100 dark:bg-amber-900/40 text-amber-500 rounded-full shadow-inner mb-2">
+                    <i class="fa-solid fa-trophy text-4xl sm:text-5xl animate-bounce"></i>
+                </div>
+
+                <h3 data-i18n="winnerAnnouncement" class="text-sm uppercase tracking-widest font-extrabold text-slate-400">¡Tenemos un Ganador!</h3>
+                
+                <div class="py-3 px-4 bg-slate-100 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600">
+                    <p id="winnerName" aria-live="polite" class="text-2xl sm:text-3xl font-extrabold text-sky-600 dark:text-sky-400 break-words"></p>
+                </div>
+
+                <div class="pt-4 flex flex-col sm:flex-row gap-2">
+                    <button id="removeWinnerBtn" class="flex-1 py-3 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-minus"></i> <span data-i18n="removeWinner">Remover de la lista</span>
+                    </button>
+                    <button id="keepWinnerBtn" class="flex-1 py-3 px-4 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-check"></i> <span data-i18n="keepWinner">Mantener en lista</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
